@@ -1,14 +1,10 @@
-import CrudPage from '../components/CrudPage';
+import { useCallback, useEffect, useState } from 'react';
+import { Alert, Box, Button, IconButton, Paper, Table, TableBody, TableCell, TableHead, TablePagination, TableRow, TextField, Typography } from '@mui/material';
+import { Add, Delete, Edit, Refresh, Search } from '@mui/icons-material';
 import { customerApi } from '../services/crmApi';
+import EntityForm from '../components/EntityForm';
 
-const fields = [
-  { field: 'name', header: 'Customer Name' },
-  { field: 'email', header: 'Email', type: 'email' },
-  { field: 'phone', header: 'Phone' },
-  { field: 'companyName', header: 'Company' },
-  { field: 'address', header: 'Address' },
-];
-
-export default function Customer() {
-  return <CrudPage title="Customers" api={customerApi} columns={fields} fields={fields} />;
-}
+const fields=[{name:'name',label:'Customer Name'},{name:'email',label:'Email',type:'email'},{name:'phone',label:'Phone'},{name:'companyName',label:'Company'},{name:'address',label:'Address',multiline:true,fullWidth:true}];
+const columns=[{field:'name',header:'Customer Name'},{field:'email',header:'Email'},{field:'phone',header:'Phone'},{field:'companyName',header:'Company'},{field:'address',header:'Address'}];
+const unwrap=d=>Array.isArray(d)?d:d?.data??d?.content??[];
+export default function Customer(){const[rows,setRows]=useState([]),[loading,setLoading]=useState(false),[error,setError]=useState(''),[query,setQuery]=useState(''),[open,setOpen]=useState(false),[editing,setEditing]=useState(null),[page,setPage]=useState(0),[size,setSize]=useState(10);const load=useCallback(async()=>{setLoading(true);setError('');try{const r=await customerApi.list();setRows(unwrap(r.data));}catch(e){setError(e.response?.data?.message||e.message||'Unable to load customers')}finally{setLoading(false)}},[]);useEffect(()=>{load()},[load]);const save=async v=>{if(editing)await customerApi.update(editing.id,v);else await customerApi.create(v);setOpen(false);setEditing(null);await load()};const remove=async r=>{if(!window.confirm(`Delete customer ${r.name||''}?`))return;try{await customerApi.remove(r.id);await load()}catch(e){setError(e.response?.data?.message||e.message||'Unable to delete customer')}};const filtered=rows.filter(r=>`${r.name||''} ${r.email||''} ${r.phone||''} ${r.companyName||''}`.toLowerCase().includes(query.toLowerCase()));const visible=filtered.slice(page*size,page*size+size);return <Box><Box display="flex" alignItems="center" gap={1} mb={2}><Box flex={1}><Typography variant="h4" fontWeight={700}>Customers</Typography><Typography color="text.secondary">Manage customer profiles</Typography></Box><TextField size="small" placeholder="Search customers..." value={query} onChange={e=>{setQuery(e.target.value);setPage(0)}} InputProps={{startAdornment:<Search fontSize="small"/>}}/><IconButton onClick={load} disabled={loading}><Refresh/></IconButton><Button variant="contained" startIcon={<Add/>} onClick={()=>{setEditing(null);setOpen(true)}}>Add Customer</Button></Box>{error&&<Alert severity="error" sx={{mb:2}}>{error}</Alert>}<Paper><Table><TableHead><TableRow>{columns.map(c=><TableCell key={c.field}>{c.header}</TableCell>)}<TableCell align="right">Actions</TableCell></TableRow></TableHead><TableBody>{visible.map(r=><TableRow hover key={r.id}>{columns.map(c=><TableCell key={c.field}>{r[c.field]??''}</TableCell>)}<TableCell align="right"><IconButton onClick={()=>{setEditing(r);setOpen(true)}}><Edit/></IconButton><IconButton color="error" onClick={()=>remove(r)}><Delete/></IconButton></TableCell></TableRow>)}{!visible.length&&<TableRow><TableCell colSpan={columns.length+1} align="center">{loading?'Loading...':'No customers found'}</TableCell></TableRow>}</TableBody></Table><TablePagination component="div" count={filtered.length} page={page} rowsPerPage={size} onPageChange={(_,p)=>setPage(p)} onRowsPerPageChange={e=>{setSize(Number(e.target.value));setPage(0)}}/></Paper><EntityForm open={open} title={editing?'Edit Customer':'Add Customer'} fields={fields} initialValues={editing||{}} onClose={()=>{setOpen(false);setEditing(null)}} onSubmit={save}/></Box>}
