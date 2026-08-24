@@ -1,14 +1,9 @@
+import { useEffect, useState } from 'react';
+import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, Grid, TextField } from '@mui/material';
 import CrudPage from '../components/CrudPage';
+import VendorSelect from '../components/VendorSelect';
 import { productApi } from '../services/crmApi';
 
-const fields = [
-  { field: 'name', header: 'Product Name' },
-  { field: 'sku', header: 'SKU' },
-  { field: 'description', header: 'Description' },
-  { field: 'price', header: 'Price', type: 'number' },
-  { field: 'status', header: 'Status' },
-];
-
-export default function Product() {
-  return <CrudPage title="Products" api={productApi} columns={fields} fields={fields} />;
-}
+const columns=[{field:'name',header:'Product Name'},{field:'sku',header:'SKU'},{field:'price',header:'Price'},{field:'status',header:'Status'},{field:'vendorName',header:'Vendor'}];
+function ProductForm({open,initialValues={},onClose,onSubmit}){const[form,setForm]=useState(initialValues);const[saving,setSaving]=useState(false);const[error,setError]=useState('');useEffect(()=>{setForm(initialValues||{});setError('')},[initialValues,open]);const set=(k,v)=>setForm(x=>({...x,[k]:v}));const submit=async e=>{e.preventDefault();setSaving(true);try{await onSubmit(form)}catch(x){setError(x.response?.data?.message||x.message||'Unable to save product')}finally{setSaving(false)}};return <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm"><DialogTitle>{initialValues?.id?'Edit Product':'Add Product'}</DialogTitle><form onSubmit={submit}><DialogContent>{error&&<Alert severity="error" sx={{mb:2}}>{error}</Alert>}<Grid container spacing={2}><Grid item xs={12}><TextField fullWidth required label="Product Name" value={form.name||''} onChange={e=>set('name',e.target.value)}/></Grid><Grid item xs={12} md={6}><TextField fullWidth required label="SKU" value={form.sku||''} onChange={e=>set('sku',e.target.value)}/></Grid><Grid item xs={12} md={6}><TextField fullWidth type="number" label="Price" value={form.price??''} onChange={e=>set('price',e.target.value)}/></Grid><Grid item xs={12} md={6}><TextField fullWidth label="Status" value={form.status||''} onChange={e=>set('status',e.target.value)}/></Grid><Grid item xs={12} md={6}><VendorSelect value={form.vendorId} onChange={v=>set('vendorId',v)}/></Grid><Grid item xs={12}><TextField fullWidth multiline minRows={3} label="Description" value={form.description||''} onChange={e=>set('description',e.target.value)}/></Grid></Grid></DialogContent><DialogActions><Button onClick={onClose}>Cancel</Button><Button type="submit" variant="contained" disabled={saving}>{saving?'Saving...':'Save Product'}</Button></DialogActions></form></Dialog>}
+export default function Product(){return <CrudPage title="Products" api={productApi} columns={columns} fields={columns} formComponent={ProductForm}/>}
