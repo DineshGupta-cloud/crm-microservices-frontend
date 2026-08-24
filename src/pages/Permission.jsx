@@ -1,0 +1,5 @@
+import { useEffect, useState } from 'react';
+import { Alert, Box, Button, Paper, Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material';
+import { permissionApi } from '../services/crmApi';
+const unwrap=d=>Array.isArray(d)?d:d?.data??d?.content??[];
+export default function Permission(){const[rows,setRows]=useState([]),[error,setError]=useState('');useEffect(()=>{permissionApi.list().then(r=>setRows(unwrap(r.data))).catch(e=>setError(e.response?.data?.message||e.message||'Unable to load permissions'))},[]);return <Box><Typography variant="h4" fontWeight={700} mb={1}>Permissions</Typography><Typography color="text.secondary" mb={2}>Available API and menu permissions</Typography>{error&&<Alert severity="error" sx={{mb:2}}>{error}</Alert>}<Paper><Table><TableHead><TableRow><TableCell>Name</TableCell><TableCell>Code</TableCell><TableCell>Description</TableCell></TableRow></TableHead><TableBody>{rows.map(r=><TableRow key={r.id}><TableCell>{r.name}</TableCell><TableCell>{r.code}</TableCell><TableCell>{r.description}</TableCell></TableRow>)}</TableBody></Table></Paper></Box>}
