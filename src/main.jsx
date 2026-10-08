@@ -7,7 +7,7 @@ import MainLayout from './layouts/MainLayout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import CrudPage from './components/CrudPage';
-import { useAuthStore } from './store/authStore';
+import ProtectedRoute from './auth/ProtectedRoute';
 import { companyApi, branchApi, departmentApi, designationApi, employeeApi, leadApi, customerApi, vendorApi, productApi, taskApi, notificationApi, auditApi } from './services/crmApi';
 import './styles.css';
 
@@ -26,9 +26,39 @@ const resources = [
   ['products','Products',productApi,[{field:'name',header:'Name'},{field:'sku',header:'SKU'},{field:'price',header:'Price',type:'number'}]],
   ['tasks','Tasks',taskApi,[{field:'title',header:'Title'},{field:'description',header:'Description'},{field:'status',header:'Status'},{field:'priority',header:'Priority'}]],
   ['notifications','Notifications',notificationApi,[{field:'title',header:'Title'},{field:'message',header:'Message'}]],
-  ['audits','Audit Logs',auditApi,[{field:'entityName',header:'Entity'},{field:'entityId',header:'Entity ID'},{field:'action',header:'Action'}]],
+  ['audits','audits',auditApi,[{field:'entityName',header:'Entity'},{field:'entityId',header:'Entity ID'},{field:'action',header:'Action'}]],
 ];
 
-function Protected() { const token = useAuthStore(s => s.accessToken); return token ? <MainLayout /> : <Navigate to="/login" replace />; }
-function App() { return <Routes><Route path="/login" element={<Login />} /><Route element={<Protected />}><Route path="/" element={<Dashboard />} />{resources.map(([path,title,api,columns]) => <Route key={path} path={`/${path}`} element={<CrudPage title={title} api={api} columns={columns} fields={columns} />} />)}</Route><Route path="*" element={<Navigate to="/" replace />} /></Routes>; }
-ReactDOM.createRoot(document.getElementById('root')).render(<React.StrictMode><QueryClientProvider client={queryClient}><ThemeProvider theme={theme}><CssBaseline /><BrowserRouter><App /></BrowserRouter></ThemeProvider></QueryClientProvider></React.StrictMode>);
+function App() {
+  return (
+    <Routes>
+      <Route path="/login" element={<Login />} />
+      <Route element={<ProtectedRoute />}>
+        <Route element={<MainLayout />}>
+          <Route path="/" element={<Dashboard />} />
+          {resources.map(([path, title, api, columns]) => (
+            <Route
+              key={path}
+              path={`/${path}`}
+              element={<CrudPage title={title} api={api} columns={columns} fields={columns} />}
+            />
+          ))}
+        </Route>
+      </Route>
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </ThemeProvider>
+    </QueryClientProvider>
+  </React.StrictMode>
+);
