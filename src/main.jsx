@@ -26,7 +26,7 @@ const resources = [
   ['products','Products',productApi,[{field:'name',header:'Name'},{field:'sku',header:'SKU'},{field:'price',header:'Price',type:'number'}]],
   ['tasks','Tasks',taskApi,[{field:'title',header:'Title'},{field:'description',header:'Description'},{field:'status',header:'Status'},{field:'priority',header:'Priority'}]],
   ['notifications','Notifications',notificationApi,[{field:'title',header:'Title'},{field:'message',header:'Message'}]],
-  ['audits','audits',auditApi,[{field:'entityName',header:'Entity'},{field:'entityId',header:'Entity ID'},{field:'action',header:'Action'}]],
+  ['audits','Audit Logs',auditApi,[{field:'entityName',header:'Entity'},{field:'entityId',header:'Entity ID'},{field:'action',header:'Action'}]],
 ];
 
 function App() {
